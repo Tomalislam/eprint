@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Order Details</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <h1 class="mt-5">Order Details</h1>
+    <h2>Total Price: {{ total_price }} TK</h2>
+    <h3>Files:</h3>
+    <ul class="list-group">
+        {% for file in file_details %}
+            <li class="list-group-item">
+                <strong>Filename:</strong> {{ file.filename }} |
+                <strong>Total Pages:</strong> {{ file.total_pages }} |
+                <strong>Page Size:</strong> {{ file.page_size }} |
+                <strong>Color Type:</strong> {{ file.color_type }} |
+                <strong>Price:</strong> {{ file.price }} TK
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h3 class="mt-5">Order Form</h3>
+    <form method="POST" action="/submit_order">
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="address">Shipping Address:</label>
+            <textarea id="address" name="address" class="form-control" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Order</button>
+    </form>
+</div>
+</body>
+</html>
