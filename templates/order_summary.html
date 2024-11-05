@@ -9,33 +9,34 @@
 <body>
 <div class="container">
     <h1 class="mt-5">Order Summary</h1>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Address</th>
-                <th>Total Price</th>
-                <th>Created At</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in orders %}
-            <tr>
-                <td>{{ order.id }}</td>
-                <td>{{ order.name }}</td>
-                <td>{{ order.email }}</td>
-                <td>{{ order.phone }}</td>
-                <td>{{ order.address }}</td>
-                <td>{{ order.total_price }} TK</td>
-                <td>{{ order.created_at }}</td>
-            </tr>
+    
+    {% if file_details %}
+        <h2 class="mt-4">Files Ordered</h2>
+        <ul class="list-group">
+            {% for file in file_details %}
+                <li class="list-group-item">
+                    <strong>Filename:</strong> {{ file.filename }} |
+                    <strong>Total Pages:</strong> {{ file.total_pages }} |
+                    <strong>Page Size:</strong> {{ file.page_size }} |
+                    <strong>Color Type:</strong> {{ file.color_type }} |
+                    <strong>Price:</strong> {{ file.price }} TK
+                </li>
             {% endfor %}
-        </tbody>
-    </table>
-    <a href="{{ url_for('home') }}" class="btn btn-primary">Back to Home</a>
+        </ul>
+        <h3 class="mt-3">Total Price: {{ total_price }} TK</h3>
+    {% else %}
+        <p>No files were found in the order summary.</p>
+    {% endif %}
+
+    <h2 class="mt-4">Customer Information</h2>
+    <ul class="list-group">
+        <li class="list-group-item"><strong>Name:</strong> {{ name }}</li>
+        <li class="list-group-item"><strong>Email:</strong> {{ email }}</li>
+        <li class="list-group-item"><strong>Phone Number:</strong> {{ phone }}</li>
+        <li class="list-group-item"><strong>Address:</strong> {{ address }}</li>
+    </ul>
+
+    <a href="{{ url_for('home') }}" class="btn btn-primary mt-3">Return to Home</a>
 </div>
 </body>
 </html>
