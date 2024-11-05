@@ -1,6 +1,7 @@
 Flask==3.0.3
-Flask-SQLAlchemy==3.0.0
-Flask-Migrate==3.1.0
-PyPDF2==3.0.1
+Flask-SQLAlchemy==3.0.2
+Flask-Mail==2.0.1
 python-dotenv==1.0.0
-smtplib==1.0.0
+PyPDF2==3.0.1
+gunicorn==23.0.0
+alembic==1.9.4
