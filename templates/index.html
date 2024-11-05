@@ -1,28 +1,35 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>PDF Price Calculator</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Upload Multiple PDF Files</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
-    <h2>Upload PDF</h2>
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <label for="file">Select PDF:</label>
-        <input type="file" name="file" required><br><br>
-        
-        <label for="page_size">Page Size:</label>
-        <select name="page_size" required>
-            <option value="A4">A4</option>
-            <option value="A5">A5</option>
-        </select><br><br>
-        
-        <label for="color_type">Color Type:</label>
-        <select name="color_type" required>
-            <option value="color">Color</option>
-            <option value="black_and_white">Black and White</option>
-        </select><br><br>
-        
-        <input type="submit" value="Calculate Price">
+<div class="container">
+    <h1 class="mt-5">Upload Multiple PDF Files</h1>
+    <form method="post" enctype="multipart/form-data" action="/upload">
+        <div class="form-group">
+            <label for="files">Select PDF files:</label>
+            <input type="file" name="files[]" id="files" class="form-control-file" multiple required>
+        </div>
+        <div class="form-group">
+            <label for="page_size">Select Page Size:</label>
+            <select name="page_size" id="page_size" class="form-control" required>
+                <option value="A4">A4</option>
+                <option value="A5">A5</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="color_type">Select Color Type:</label>
+            <select name="color_type" id="color_type" class="form-control" required>
+                <option value="color">Color</option>
+                <option value="black_and_white">Black and White</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
     </form>
+</div>
 </body>
 </html>
