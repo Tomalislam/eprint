@@ -21,23 +21,39 @@ def home():
 
 @app.route('/upload', methods=['POST'])
 def upload_pdf():
-    file = request.files['file']
+    files = request.files.getlist('files[]')  # একাধিক ফাইল লিস্ট হিসেবে গ্রহণ
     page_size = request.form.get('page_size')  # 'A4' বা 'A5'
     color_type = request.form.get('color_type')  # 'color' বা 'black_and_white'
 
-    reader = PdfReader(file)
-    num_pages = len(reader.pages)
+    total_pages = 0
+    total_price = 0.0
+    file_details = []
 
-    if page_size in PRICES and color_type in PRICES[page_size]:
-        price_per_page = PRICES[page_size][color_type]
-        total_price = num_pages * price_per_page
-        return jsonify({
-            'total_pages': num_pages,
-            'price_per_page': price_per_page,
-            'total_price': total_price
-        })
-    else:
-        return jsonify({'error': 'Invalid page size or color type'}), 400
+    for file in files:
+        if file.filename != '':  # ফাইলটি খালি নয় কিনা তা যাচাই
+            reader = PdfReader(file)
+            num_pages = len(reader.pages)
+            total_pages += num_pages
+
+            if page_size in PRICES and color_type in PRICES[page_size]:
+                price_per_page = PRICES[page_size][color_type]
+                file_price = num_pages * price_per_page
+                total_price += file_price
+
+                file_details.append({
+                    'filename': file.filename,
+                    'total_pages': num_pages,
+                    'price': file_price
+                })
+
+    if total_pages == 0:
+        return jsonify({'error': 'No valid PDF files uploaded'}), 400
+
+    return jsonify({
+        'total_pages': total_pages,
+        'total_price': total_price,
+        'file_details': file_details
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)
