@@ -34,4 +34,24 @@ def home():
                 num_pages = len(reader.pages)
 
                 if page_size in PRICES and color_type in PRICES[page_size]:
-                    price_per_page = PR
+                    price_per_page = PRICES[page_size][color_type]
+                    file_price = num_pages * price_per_page
+
+                    file_details.append({
+                        'filename': file.filename,
+                        'total_pages': num_pages,
+                        'price': file_price
+                    })
+
+        session['file_details'] = file_details  # সেশনে আপডেট করা
+
+    total_price = sum(file['price'] for file in session['file_details'])
+    return render_template('index.html', file_details=session.get('file_details', []), total_price=total_price)
+
+@app.route('/clear', methods=['POST'])
+def clear_files():
+    session.pop('file_details', None)  # সেশন থেকে ডেটা সরানো
+    return redirect(url_for('home'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
