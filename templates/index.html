@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Price Calculator</title>
+</head>
+<body>
+    <h2>Upload PDF</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="file">Select PDF:</label>
+        <input type="file" name="file" required><br><br>
+        
+        <label for="page_size">Page Size:</label>
+        <select name="page_size" required>
+            <option value="A4">A4</option>
+            <option value="A5">A5</option>
+        </select><br><br>
+        
+        <label for="color_type">Color Type:</label>
+        <select name="color_type" required>
+            <option value="color">Color</option>
+            <option value="black_and_white">Black and White</option>
+        </select><br><br>
+        
+        <input type="submit" value="Calculate Price">
+    </form>
+</body>
+</html>
