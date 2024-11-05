@@ -1,15 +1,11 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask import Flask, request, jsonify, render_template, session, redirect, url_for
+from flask import Flask, request, render_template, session, redirect, url_for
 from PyPDF2 import PdfReader
 import os
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///orders.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db.init_app(app)
 app = Flask(__name__)
-app.secret_key = 'your_super_secret_key'  # শক্তিশালী সিক্রেট কী ব্যবহার করুন
+app.secret_key = 'your_secret_key'  # Replace with a strong secret key
 
-# প্রতি পৃষ্ঠার মূল্য নির্ধারণ
+# Price per page configuration
 PRICES = {
     'A4': {
         'color': 3.0,
@@ -24,7 +20,7 @@ PRICES = {
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if 'file_details' not in session:
-        session['file_details'] = []  # সেশন ইনিশিয়ালাইজ করা
+        session['file_details'] = []  # Initialize session if not set
     
     if request.method == 'POST':
         files = request.files.getlist('files[]')
@@ -33,7 +29,7 @@ def home():
         
         file_details = session['file_details']
         for file in files:
-            if file.filename != '' and not any(f['filename'] == file.filename for f in file_details):  # ডুপ্লিকেট ফাইল চেক
+            if file.filename and not any(f['filename'] == file.filename for f in file_details):  # Check for duplicate files
                 reader = PdfReader(file)
                 num_pages = len(reader.pages)
 
@@ -49,49 +45,32 @@ def home():
                         'price': file_price
                     })
 
-        session['file_details'] = file_details  # সেশনে আপডেট করা
+        session['file_details'] = file_details  # Update session
 
     total_price = sum(file['price'] for file in session['file_details'])
     return render_template('index.html', file_details=session.get('file_details', []), total_price=total_price)
 
 @app.route('/clear', methods=['POST'])
 def clear_files():
-    session.pop('file_details', None)  # সেশন থেকে ডেটা সরানো
+    session.pop('file_details', None)  # Clear session data
     return redirect(url_for('home'))
-    
+
 @app.route('/order', methods=['GET'])
 def order():
     file_details = session.get('file_details', [])
     total_price = sum(file['price'] for file in file_details)
     return render_template('order.html', file_details=file_details, total_price=total_price)
-    
+
 @app.route('/submit_order', methods=['POST'])
 def submit_order():
     name = request.form.get('name')
     email = request.form.get('email')
     phone = request.form.get('phone')
     address = request.form.get('address')
+    # Here you can process the order (like saving to database or sending an email)
     
-    total_price = sum(file['price'] for file in session.get('file_details', []))
-    
-    # ফাইল ডিটেইলসকে JSON স্ট্রিং এ কনভার্ট করা
-    file_details = session.get('file_details', [])
-    files_json = json.dumps(file_details)
+    # After submitting the order, redirect to confirmation page
+    return render_template('confirmation.html', name=name, email=email, phone=phone, address=address)
 
-    # নতুন অর্ডার তৈরি এবং ডেটাবেসে সংরক্ষণ করা
-    new_order = Order(name=name, email=email, phone=phone, address=address, total_price=total_price, files=files_json)
-    db.session.add(new_order)
-    db.session.commit()
-
-    return render_template('confirmation.html', order_data={
-        'name': name,
-        'email': email,
-        'phone': phone,
-        'address': address,
-        'total_price': total_price,
-        'file_details': file_details
-    })
-
-   
 if __name__ == '__main__':
     app.run(debug=True)
