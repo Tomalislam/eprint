@@ -9,5 +9,3 @@ MarkupSafe==3.0.2
 packaging==24.1
 PyPDF2==3.0.1
 Werkzeug==3.1.2
-gdown
-Flask-Migrate
