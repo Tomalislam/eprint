@@ -40,6 +40,8 @@ def home():
                     file_details.append({
                         'filename': file.filename,
                         'total_pages': num_pages,
+                        'page_size': page_size,
+                        'color_type': color_type,
                         'price': file_price
                     })
 
