@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, session
+from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 from PyPDF2 import PdfReader
 import os
 
@@ -28,29 +28,10 @@ def home():
         color_type = request.form.get('color_type')
         
         file_details = session['file_details']
-        total_pages = 0
-        total_price = 0.0
-
         for file in files:
             if file.filename != '' and not any(f['filename'] == file.filename for f in file_details):  # ডুপ্লিকেট ফাইল চেক
                 reader = PdfReader(file)
                 num_pages = len(reader.pages)
-                total_pages += num_pages
 
                 if page_size in PRICES and color_type in PRICES[page_size]:
-                    price_per_page = PRICES[page_size][color_type]
-                    file_price = num_pages * price_per_page
-                    total_price += file_price
-
-                    file_details.append({
-                        'filename': file.filename,
-                        'total_pages': num_pages,
-                        'price': file_price
-                    })
-
-        session['file_details'] = file_details  # সেশনে আপডেট করা
-
-    return render_template('index.html', file_details=session.get('file_details', []))
-
-if __name__ == '__main__':
-    app.run(debug=True)
+                    price_per_page = PR
