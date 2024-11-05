@@ -3,7 +3,7 @@ from PyPDF2 import PdfReader
 import os
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # সেশন ব্যবহারের জন্য সিক্রেট কী
+app.secret_key = 'your_super_secret_key'  # শক্তিশালী সিক্রেট কী ব্যবহার করুন
 
 # প্রতি পৃষ্ঠার মূল্য নির্ধারণ
 PRICES = {
@@ -61,14 +61,15 @@ def order():
     total_price = sum(file['price'] for file in file_details)
     return render_template('order.html', file_details=file_details, total_price=total_price)
     
- @app.route('/submit_order', methods=['POST'])
+@app.route('/submit_order', methods=['POST'])  # Fix the spacing issue here
 def submit_order():
     name = request.form.get('name')
     email = request.form.get('email')
     address = request.form.get('address')
-    # এখানে অর্ডার সংক্রান্ত তথ্য প্রক্রিয়া করুন (যেমন ডেটাবেজে সংরক্ষণ, ইমেইল পাঠানো ইত্যাদি)
     
-    # সফলভাবে অর্ডার জমা দেওয়ার পর ব্যবহাকারীকে একটি কনফার্মেশন পেজে পাঠান
+    # অর্ডার সংক্রান্ত তথ্য প্রক্রিয়া করুন (যেমন ডেটাবেজে সংরক্ষণ, ইমেইল পাঠানো ইত্যাদি)
+    
+    # সফলভাবে অর্ডার জমা দেওয়ার পর ব্যবহারকারীকে একটি কনফার্মেশন পেজে পাঠান
     return render_template('confirmation.html', name=name, email=email, address=address)
    
 if __name__ == '__main__':
