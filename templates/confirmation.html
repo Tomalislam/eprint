@@ -9,9 +9,18 @@
 <body>
 <div class="container">
     <h1 class="mt-5">Order Confirmation</h1>
-    <p>Thank you, {{ name }}! Your order has been received.</p>
-    <p>We will send a confirmation to {{ email }}.</p>
-    <p>Your shipping address: {{ address }}</p>
+    <p>Thank you, {{ name }}! Your order has been successfully placed.</p>
+    <h2>Your Details</h2>
+    <p><strong>Name:</strong> {{ name }}</p>
+    <p><strong>Email:</strong> {{ email }}</p>
+    <p><strong>Phone Number:</strong> {{ phone }}</p>
+    <p><strong>Address:</strong> {{ address }}</p>
+    <h2>Order Summary</h2>
+    {% for file in file_details %}
+        <p>{{ file.filename }} | Total Pages: {{ file.total_pages }} | Price: {{ file.price }} TK</p>
+    {% endfor %}
+    <h3>Total Price: {{ total_price }} TK</h3>
+    <a href="{{ url_for('home') }}" class="btn btn-primary mt-3">Go to Home</a>
 </div>
 </body>
 </html>
