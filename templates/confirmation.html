@@ -9,10 +9,17 @@
 <body>
 <div class="container">
     <h1 class="mt-5">Order Confirmation</h1>
-    <p>Thank you, {{ name }}! Your order has been received.</p>
-    <p><strong>Email:</strong> {{ email }}</p>
-    <p><strong>Phone:</strong> {{ phone }}</p>
-    <p><strong>Address:</strong> {{ address }}</p>
+    <p>Thank you for your order, <strong>{{ name }}</strong>!</p>
+    <p>Your order details are as follows:</p>
+    <ul class="list-group mt-3">
+        <li class="list-group-item"><strong>Name:</strong> {{ name }}</li>
+        <li class="list-group-item"><strong>Email:</strong> {{ email }}</li>
+        <li class="list-group-item"><strong>Phone Number:</strong> {{ phone }}</li>
+        <li class="list-group-item"><strong>Address:</strong> {{ address }}</li>
+        <li class="list-group-item"><strong>Total Price:</strong> {{ total_price }} TK</li>
+    </ul>
+    <p class="mt-4">We will contact you shortly regarding your order.</p>
+    <a href="{{ url_for('home') }}" class="btn btn-primary mt-3">Return to Home</a>
 </div>
 </body>
 </html>
