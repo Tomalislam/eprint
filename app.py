@@ -32,7 +32,7 @@ def home():
         total_price = 0.0
 
         for file in files:
-            if file.filename != '':
+            if file.filename != '' and not any(f['filename'] == file.filename for f in file_details):  # ডুপ্লিকেট ফাইল চেক
                 reader = PdfReader(file)
                 num_pages = len(reader.pages)
                 total_pages += num_pages
