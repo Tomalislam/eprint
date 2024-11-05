@@ -1,44 +1,62 @@
-from flask import Flask, request, jsonify, render_template, session, redirect, url_for
-from PyPDF2 import PdfReader
+from flask import Flask, request, render_template, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from PyPDF2 import PdfReader
 import os
 import smtplib
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Use a proper secret key
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///orders.db'  # Change this to your database URI
-db = SQLAlchemy(app)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Define the Order model
+# Database setup
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+# Model for storing orders
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
-    email = db.Column(db.String(100))
-    phone = db.Column(db.String(15))
-    address = db.Column(db.String(255))
-    total_price = db.Column(db.Float)
-    created_at = db.Column(db.DateTime, default=db.func.now())
+    filename = db.Column(db.String(120), nullable=False)
+    total_pages = db.Column(db.Integer, nullable=False)
+    page_size = db.Column(db.String(10), nullable=False)
+    color_type = db.Column(db.String(20), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    customer_name = db.Column(db.String(100), nullable=False)
+    customer_email = db.Column(db.String(120), nullable=False)
+    phone_number = db.Column(db.String(15), nullable=False)
 
-# Price settings
+# Price configuration
 PRICES = {
-    'A4': {'color': 3.0, 'black_and_white': 1.5},
-    'A5': {'color': 1.5, 'black_and_white': 0.8}
+    'A4': {
+        'color': 3.0,
+        'black_and_white': 1.5
+    },
+    'A5': {
+        'color': 1.5,
+        'black_and_white': 0.8
+    }
 }
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if 'file_details' not in session:
-        session['file_details'] = []  # Initialize session
+        session['file_details'] = []
     
     if request.method == 'POST':
         files = request.files.getlist('files[]')
         page_size = request.form.get('page_size')
         color_type = request.form.get('color_type')
-        
+
         file_details = session['file_details']
         for file in files:
-            if file.filename != '' and not any(f['filename'] == file.filename for f in file_details):  # Check for duplicates
+            if file.filename and not any(f['filename'] == file.filename for f in file_details):
                 reader = PdfReader(file)
                 num_pages = len(reader.pages)
 
@@ -54,59 +72,82 @@ def home():
                         'price': file_price
                     })
 
-        session['file_details'] = file_details  # Update session
+        session['file_details'] = file_details
 
-    total_price = sum(file['price'] for file in session['file_details'])
+    total_price = sum(file['price'] for file in session.get('file_details', []))
     return render_template('index.html', file_details=session.get('file_details', []), total_price=total_price)
 
 @app.route('/clear', methods=['POST'])
 def clear_files():
-    session.pop('file_details', None)  # Clear session data
+    session.pop('file_details', None)
     return redirect(url_for('home'))
-    
-@app.route('/order', methods=['GET'])
+
+@app.route('/order', methods=['GET', 'POST'])
 def order():
     file_details = session.get('file_details', [])
+    if request.method == 'POST':
+        customer_name = request.form.get('name')
+        customer_email = request.form.get('email')
+        phone_number = request.form.get('phone')
+
+        if not file_details:
+            flash('No files to order', 'danger')
+            return redirect(url_for('home'))
+
+        total_price = sum(file['price'] for file in file_details)
+
+        for file in file_details:
+            order = Order(
+                filename=file['filename'],
+                total_pages=file['total_pages'],
+                page_size=file['page_size'],
+                color_type=file['color_type'],
+                price=file['price'],
+                customer_name=customer_name,
+                customer_email=customer_email,
+                phone_number=phone_number
+            )
+            db.session.add(order)
+        db.session.commit()
+
+        # Send order confirmation email
+        send_order_email(customer_name, customer_email, total_price, file_details)
+
+        session.pop('file_details', None)
+        return render_template('confirmation.html', name=customer_name, email=customer_email, phone=phone_number)
+
     total_price = sum(file['price'] for file in file_details)
     return render_template('order.html', file_details=file_details, total_price=total_price)
 
-@app.route('/submit_order', methods=['POST'])
-def submit_order():
-    name = request.form.get('name')
-    email = request.form.get('email')
-    phone = request.form.get('phone')
-    address = request.form.get('address')
-    
-    total_price = sum(file['price'] for file in session.get('file_details', []))
-
-    # Create a new Order instance
-    new_order = Order(name=name, email=email, phone=phone, address=address, total_price=total_price)
-    
-    # Add the order to the session and commit to the database
-    db.session.add(new_order)
-    db.session.commit()
-
-    # Send an email notification
-    send_order_email(new_order)
-
-    return render_template('confirmation.html', name=name, email=email, phone=phone, address=address)
-
 @app.route('/order_summary', methods=['GET'])
 def order_summary():
-    orders = Order.query.all()  # Retrieve all orders from the database
+    orders = Order.query.all()
     return render_template('order_summary.html', orders=orders)
 
-def send_order_email(order):
-    msg = MIMEText(f"New order received:\n\nName: {order.name}\nEmail: {order.email}\nPhone: {order.phone}\nAddress: {order.address}\nTotal Price: {order.total_price}")
-    msg['Subject'] = 'New Order Received'
-    msg['From'] = 'lisulislamtomal@gmail.com'  # Use your email
-    msg['To'] = 'lisulislamtomal@gmail.com'  # Send it to yourself
+def send_order_email(name, email, total_price, file_details):
+    sender_email = os.getenv('EMAIL_USER')
+    sender_password = os.getenv('EMAIL_PASS')
+    receiver_email = email
 
-    with smtplib.SMTP('smtp.gmail.com', 587) as server:  # Use your SMTP server
-        server.starttls()
-        server.login('lisulislamtomal@gmail.com', 'acla uqyu dgvu uull')  # Use your actual email and password
-        server.send_message(msg)
+    subject = 'Order Confirmation'
+    body = f'Dear {name},\n\nThank you for your order. Here is your order summary:\n\n'
+    for file in file_details:
+        body += f"Filename: {file['filename']}, Pages: {file['total_pages']}, Price: {file['price']} TK\n"
+    body += f"\nTotal Price: {total_price} TK\n\nBest regards,\nYour Company"
+
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, receiver_email, msg.as_string())
+    except Exception as e:
+        print(f'Failed to send email: {e}')
 
 if __name__ == '__main__':
-    db.create_all()  # Create database tables if they don't exist
     app.run(debug=True)
