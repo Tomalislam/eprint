@@ -1,31 +1,29 @@
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from __future__ import with_statement
 from alembic import context
-from your_flask_app import app, db  # আপনার অ্যাপ্লিকেশনের নাম অনুযায়ী এই লাইনটি সংশোধন করুন
+from sqlalchemy import engine_from_config, pool
+from logging.config import fileConfig
 
-# হ্যালো সেশন তৈরির জন্য কনফিগারেশন
+# this is the Alembic Config object, which provides
+# access to the values within the .ini file in use.
 config = context.config
 
-# লগ কনফিগারেশন
+# Interpret the config file for Python logging.
+# This line sets up loggers basically.
 fileConfig(config.config_file_name)
 
-# স্ক্রিপ্টের `target_metadata` সেট করুন
-target_metadata = db.Model.metadata  # Flask-SQLAlchemy ব্যবহার করলে
+# add your model's MetaData object here
+# for 'autogenerate' support
+# from myapp import mymodel
+# target_metadata = mymodel.Base.metadata
+target_metadata = None  # Update this to your model's metadata if you have models
 
 def run_migrations_offline():
     """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
-    context.configure(
-        url=url,
-        target_metadata=target_metadata,
-        literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
-    )
+    context.configure(url=url, target_metadata=target_metadata, literal_binds=True, dialect_opts={"paramstyle": "named"})
 
     with context.begin_transaction():
         context.run_migrations()
-
 
 def run_migrations_online():
     """Run migrations in 'online' mode."""
@@ -39,11 +37,11 @@ def run_migrations_online():
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
+            process_bind_param=True,
         )
 
         with context.begin_transaction():
             context.run_migrations()
-
 
 if context.is_offline_mode():
     run_migrations_offline()
