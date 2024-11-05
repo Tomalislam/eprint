@@ -1,7 +1,11 @@
+from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for
 from PyPDF2 import PdfReader
 import os
 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///orders.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
 app = Flask(__name__)
 app.secret_key = 'your_super_secret_key'  # শক্তিশালী সিক্রেট কী ব্যবহার করুন
 
@@ -61,16 +65,33 @@ def order():
     total_price = sum(file['price'] for file in file_details)
     return render_template('order.html', file_details=file_details, total_price=total_price)
     
-@app.route('/submit_order', methods=['POST'])  # Fix the spacing issue here
+@app.route('/submit_order', methods=['POST'])
 def submit_order():
     name = request.form.get('name')
     email = request.form.get('email')
+    phone = request.form.get('phone')
     address = request.form.get('address')
     
-    # অর্ডার সংক্রান্ত তথ্য প্রক্রিয়া করুন (যেমন ডেটাবেজে সংরক্ষণ, ইমেইল পাঠানো ইত্যাদি)
+    total_price = sum(file['price'] for file in session.get('file_details', []))
     
-    # সফলভাবে অর্ডার জমা দেওয়ার পর ব্যবহারকারীকে একটি কনফার্মেশন পেজে পাঠান
-    return render_template('confirmation.html', name=name, email=email, address=address)
+    # ফাইল ডিটেইলসকে JSON স্ট্রিং এ কনভার্ট করা
+    file_details = session.get('file_details', [])
+    files_json = json.dumps(file_details)
+
+    # নতুন অর্ডার তৈরি এবং ডেটাবেসে সংরক্ষণ করা
+    new_order = Order(name=name, email=email, phone=phone, address=address, total_price=total_price, files=files_json)
+    db.session.add(new_order)
+    db.session.commit()
+
+    return render_template('confirmation.html', order_data={
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'address': address,
+        'total_price': total_price,
+        'file_details': file_details
+    })
+
    
 if __name__ == '__main__':
     app.run(debug=True)
