@@ -61,5 +61,15 @@ def order():
     total_price = sum(file['price'] for file in file_details)
     return render_template('order.html', file_details=file_details, total_price=total_price)
     
+ @app.route('/submit_order', methods=['POST'])
+def submit_order():
+    name = request.form.get('name')
+    email = request.form.get('email')
+    address = request.form.get('address')
+    # এখানে অর্ডার সংক্রান্ত তথ্য প্রক্রিয়া করুন (যেমন ডেটাবেজে সংরক্ষণ, ইমেইল পাঠানো ইত্যাদি)
+    
+    # সফলভাবে অর্ডার জমা দেওয়ার পর ব্যবহাকারীকে একটি কনফার্মেশন পেজে পাঠান
+    return render_template('confirmation.html', name=name, email=email, address=address)
+   
 if __name__ == '__main__':
     app.run(debug=True)
